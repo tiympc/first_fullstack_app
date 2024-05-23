@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Idea = require('../models/Idea');
-const { restart } = require('nodemon');
+// const { restart } = require('nodemon');
 
 // get all ideas
 router.get('/', async (req, res) => { 
