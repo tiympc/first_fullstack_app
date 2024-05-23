@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Idea = require('../models/Idea');
-// const { restart } = require('nodemon');
 
 // get all ideas
 router.get('/', async (req, res) => { 
@@ -10,7 +9,7 @@ router.get('/', async (req, res) => {
         res.json({success: true, data: ideas});
     } catch (error) {
         console.log(error);
-        res.status(500).json({success: false, error: 'something went wrong'})
+        res.status(500).json({success: false, error: 'something went wrong'});
     }
 });
 
@@ -21,13 +20,13 @@ router.get('/:id', async (req, res) => {
         res.json({success: true, data: idea});
     } catch (error) {
         console.log(error);
-        restart.status(500).json({success: false, error: 'something went wrong!'});
+        res.status(500).json({success: false, error: 'something went wrong!'});
     }
-})
+});
 
 // add an idea
 router.post('/', async (req, res) => {
-    const idea = new Idea ({
+    const idea = new Idea({
         text: req.body.text,
         tag: req.body.tag,
         username: req.body.username
@@ -35,43 +34,39 @@ router.post('/', async (req, res) => {
 
     try {
         const savedIdea = await idea.save();
-        res.json({success: true, data: savedIdea})
+        res.json({success: true, data: savedIdea});
     } catch (error) {
         console.log(error);
         res.status(500).json({success: false, error: 'something went wrong'});
-        
     }
-})
+});
 
 // update an idea
 router.put('/:id', async (req, res) => {
-   try {
-    const idea = await Idea.findById(req.params.id);
+    try {
+        const idea = await Idea.findById(req.params.id);
 
+        // match the usernames 
+        if (idea.username === req.body.username) {
+            const updatedIdea = await Idea.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $set: {
+                        text: req.body.text,
+                        tag: req.body.tag
+                    }
+                },
+                {new: true}
+            );
+            return res.json({success: true, data: updatedIdea});
+        }
 
-    // match the usernames 
-    if (idea.username === req.body.username) {
-        const updatedIdea = await Idea.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: {
-                    text: req.body.text,
-                    tag: req.body.tag
-                }
-            },
-            {new: true}
-        );
-        return res.json({success: true, data: updatedIdea});
-       }
-
-       // usernames do not match
-       res.status(403).json({success: false, error: 'you are not authorized to update this resource'});
+        // usernames do not match
+        res.status(403).json({success: false, error: 'you are not authorized to update this resource'});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: 'something went wrong'});
     }
-     catch (error) {
-    console.log(error)
-    res.status(500).json({success: false, error: "something went wrong"});
-    
-   }
 });
 
 // delete an idea
@@ -80,18 +75,10 @@ router.delete('/:id', async (req, res) => {
         const idea = await Idea.findById(req.params.id);
 
         // match the usernames
-        if(idea.username === req.body.username) {
+        if (idea.username === req.body.username) {
             await Idea.findByIdAndDelete(req.params.id);
             return res.json({success: true, data: {}});
         }
         
         // usernames do not match
-        res.status(403).json({success: false, error: 'you are not authorized to delete this idea!'});
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({success: false, error: 'something went wrong'});
-        
-    }
-});
-
-module.exports = router;
+     
